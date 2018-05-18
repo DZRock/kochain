@@ -1,4 +1,7 @@
 package ru.sleepyrabbit.kochain.transaction
 
-class TransactionInput {
+class TransactionInput(val transactionOutputId: String){
+
+    lateinit var UTXO: TransactionOutput
+
 }
