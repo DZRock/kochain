@@ -36,4 +36,15 @@ class Transaction(private val sender: PublicKey,
         return SignatureUtil.verifyECDSASig(sender, data, signature)
     }
 
+    fun processTransaction(): Boolean {
+        if(!verifiySignature()){
+            println("#Transaction Signature failed to verify")
+            return false
+        }
+
+//        for(input in inputs)
+
+        return false
+    }
+
 }
