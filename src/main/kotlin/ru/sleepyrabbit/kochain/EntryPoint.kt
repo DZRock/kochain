@@ -1,6 +1,7 @@
 package ru.sleepyrabbit.kochain
 
 import com.google.gson.GsonBuilder
+import ru.sleepyrabbit.kochain.util.CommonUtil
 import java.nio.charset.Charset
 import java.util.*
 
@@ -21,31 +22,5 @@ fun main(args: Array<String>){
     val blockChainSerialized = gson.toJson(blockChain)
     println(blockChainSerialized)
 
-    println(isChainValid(blockChain,difficulty))
-}
-
-fun isChainValid(blockChain: MutableList<Block>, difficulty: Int): Boolean {
-    val hashTarget = String(CharArray(difficulty)).replace('\u0000','0')
-
-    for(i in 1 until blockChain.size){
-        val currentBlock = blockChain[i]
-        val previousBlock = blockChain[i-1]
-
-        if(currentBlock.hash != currentBlock.calculateHash()){
-            println("Current hashes not equal." + currentBlock.hash)
-            return false
-        }
-
-        if(previousBlock.hash != currentBlock.previousHash){
-            println("Previous Hashes not equal " + currentBlock.hash)
-            return false
-        }
-
-        if(currentBlock.hash.substring(0, difficulty) != hashTarget){
-            println("This block hasn`t been mined")
-            return false
-        }
-    }
-
-    return true
+    println(CommonUtil.isChainValid(blockChain,difficulty))
 }

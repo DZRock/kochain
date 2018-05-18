@@ -1,6 +1,8 @@
 package ru.sleepyrabbit.kochain.transaction
 
+import ru.sleepyrabbit.kochain.util.SignatureUtil
 import ru.sleepyrabbit.kochain.util.StringUtil
+import java.security.PrivateKey
 import java.security.PublicKey
 
 class Transaction(private val sender: PublicKey,
@@ -22,6 +24,16 @@ class Transaction(private val sender: PublicKey,
                         value.toString() +
                         sequence
         )
+    }
+
+    fun generateSignature(privateKey: PrivateKey){
+        val data = StringUtil.getStringFromKey(sender) + StringUtil.getStringFromKey(recipient)+value.toString()
+        signature = SignatureUtil.applyECDSASig(privateKey, data)
+    }
+
+    fun verifiySignature(): Boolean{
+        val data = StringUtil.getStringFromKey(sender) + StringUtil.getStringFromKey(recipient)+value.toString()
+        return SignatureUtil.verifyECDSASig(sender, data, signature)
     }
 
 }
