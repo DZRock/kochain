@@ -5,18 +5,18 @@ import ru.sleepyrabbit.kochain.util.StringUtil
 import java.security.PrivateKey
 import java.security.PublicKey
 
-class Transaction(private val sender: PublicKey,
-                  private val recipient: PublicKey,
-                  private val value: Float,
-                  private val inputs: MutableList<TransactionInput>,
-                  private val outputs: MutableList<TransactionOutput>) {
+class Transaction(val sender: PublicKey,
+                  val recipient: PublicKey,
+                  val value: Float,
+                  val inputs: MutableList<TransactionInput>) {
 
+    private val outputs= mutableListOf<TransactionOutput>()
     lateinit var signature: ByteArray
     lateinit var transactionId: String
 
     private var sequence: Int = 0
 
-    fun calculateHash(): String{
+    private fun calculateHash(): String{
         sequence++
         return StringUtil.applySha256(
                 StringUtil.getStringFromKey(sender) +
@@ -31,20 +31,58 @@ class Transaction(private val sender: PublicKey,
         signature = SignatureUtil.applyECDSASig(privateKey, data)
     }
 
-    fun verifiySignature(): Boolean{
+    fun verifySignature(): Boolean{
         val data = StringUtil.getStringFromKey(sender) + StringUtil.getStringFromKey(recipient)+value.toString()
         return SignatureUtil.verifyECDSASig(sender, data, signature)
     }
 
-    fun processTransaction(): Boolean {
-        if(!verifiySignature()){
+    private fun getInputsValue(): Float{
+        var total = 0f
+        for(input in inputs){
+            if(input.utxo == null)continue
+            total += input.utxo.value
+        }
+        return total
+    }
+
+    fun getOutputValue(): Float{
+        var total = 0f
+        for(output in outputs)
+            total += output.value
+        return total
+    }
+
+    fun processTransaction(utxos: MutableMap<String, TransactionOutput>): Boolean {
+        if(!verifySignature()){
             println("#Transaction Signature failed to verify")
             return false
         }
 
-//        for(input in inputs)
+        for(input in inputs)
+            input.utxo = utxos[input.transactionOutputId]!!
 
-        return false
+        //TODO set minimalTransaction
+        val minimalTransaction = 0.1f
+        if(getInputsValue() < minimalTransaction){
+            println("#Transaction Inputs to small: ${getInputsValue()}")
+            return false
+        }
+
+        val leftOver: Float = getInputsValue() - value
+        transactionId = calculateHash()
+
+        outputs+=TransactionOutput(recipient, value, transactionId)
+        outputs+=TransactionOutput(sender, leftOver, transactionId)
+
+        for(output in outputs)
+            utxos[output.id] = output
+
+        for(input in inputs){
+            if(input.utxo==null)continue
+            utxos.remove(input.utxo.id)
+        }
+
+        return true
     }
 
 }
