@@ -3,10 +3,7 @@ package ru.sleepyrabbit.kochain
 import ru.sleepyrabbit.kochain.transaction.Transaction
 import ru.sleepyrabbit.kochain.transaction.TransactionInput
 import ru.sleepyrabbit.kochain.transaction.TransactionOutput
-import java.security.KeyPairGenerator
-import java.security.PrivateKey
-import java.security.PublicKey
-import java.security.SecureRandom
+import java.security.*
 import java.security.spec.ECGenParameterSpec
 
 class Wallet {
@@ -21,6 +18,7 @@ class Wallet {
 
     private fun generateKeyPair(){
         try {
+            Security.addProvider(org.bouncycastle.jce.provider.BouncyCastleProvider())
             val keyGen = KeyPairGenerator.getInstance("ECDSA", "BC")
             val random = SecureRandom.getInstance("SHA1PRNG")
             val ecSpec = ECGenParameterSpec("prime192v1")
@@ -69,7 +67,6 @@ class Wallet {
         for(input in inputs)
             utxos.remove(input.transactionOutputId)
 
-        HistoryKeeper.addTransactionHistory(transaction)
         return transaction
     }
 }

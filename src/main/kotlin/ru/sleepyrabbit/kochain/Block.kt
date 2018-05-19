@@ -5,17 +5,16 @@ import ru.sleepyrabbit.kochain.transaction.TransactionOutput
 import ru.sleepyrabbit.kochain.util.StringUtil
 import java.util.*
 
-class Block(var hash: String = "",
-            val previousHash: String,
+class Block(val previousHash: String,
             private var nonce: Int) {
 
-    private val transactions = mutableListOf<Transaction>()
+    var hash: String
+    val transactions = mutableListOf<Transaction>()
     private val timestamp: Long = Date().time
-    private var merkleRoot = ""
+    private var merkleRoot: String = ""
 
     init {
-        if(hash.isEmpty())
-            hash = calculateHash()
+        hash = calculateHash()
     }
 
     fun calculateHash() : String{
@@ -28,7 +27,7 @@ class Block(var hash: String = "",
     }
 
     fun mineBlock(difficulty: Int){
-        merkleRoot = StringUtil.getMerkleRoot(transactions);
+        merkleRoot = StringUtil.getMerkleRoot(transactions)
         val target = String(CharArray(difficulty)).replace('\u0000','0')
         while(hash.substring(0, difficulty) != target){
             nonce ++
@@ -40,6 +39,7 @@ class Block(var hash: String = "",
     fun addTransaction(transaction: Transaction, utxos: MutableMap<String, TransactionOutput>): Boolean{
         if(previousHash!=""){
             if(!transaction.processTransaction(utxos)){
+                HistoryKeeper.addTransactionHistory(transaction)
                 println("Transaction failed to process. Discarded")
                 return false
             }

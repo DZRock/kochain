@@ -10,7 +10,7 @@ class Transaction(val sender: PublicKey,
                   val value: Float,
                   val inputs: MutableList<TransactionInput>) {
 
-    private val outputs= mutableListOf<TransactionOutput>()
+    val outputs= mutableListOf<TransactionOutput>()
     lateinit var signature: ByteArray
     lateinit var transactionId: String
 
@@ -36,7 +36,7 @@ class Transaction(val sender: PublicKey,
         return SignatureUtil.verifyECDSASig(sender, data, signature)
     }
 
-    private fun getInputsValue(): Float{
+    fun getInputsValue(): Float{
         var total = 0f
         for(input in inputs){
             if(input.utxo == null)continue
